@@ -17,7 +17,7 @@ h1{font-size:20px;margin:6px 0 12px}
 .name{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--ac);font-size:17px}
 .sub{color:var(--sub);font-size:14px}
 pre{background:var(--code);border-radius:8px;padding:8px 10px;margin:8px 0 0;overflow-x:auto;font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all}
-input[type=search],select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;margin-bottom:10px}
+input[type=search],input[type=text],select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;margin-bottom:10px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
 .chip{flex:none;padding:6px 12px;border-radius:99px;background:var(--card);border:1px solid var(--bd);color:var(--sub);font-size:14px}
 .chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
@@ -37,6 +37,7 @@ nav button{flex:1;border-radius:0;background:none;color:var(--sub);padding:12px 
 nav button.on{color:var(--ac)}
 .big{font-size:32px;font-weight:700;color:var(--ac)}
 .bar{height:8px;background:var(--code);border-radius:9px;overflow:hidden;margin:4px 0 10px}.bar i{display:block;height:100%;background:var(--ok)}
+.mynote{width:100%;min-height:70px;margin-top:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);background:var(--code);color:var(--tx);font-size:15px;line-height:1.5;font-family:inherit;resize:vertical}
 </style>
 </head>
 <body>
@@ -182,31 +183,40 @@ var RAW=[
 var D=RAW.map(function(r,i){var p=r.split("|");return{id:p[0]+p[1],cat:p[0],name:p[1],desc:p[2],syn:p[3],ex:p[4],note:p[5]||""}});
 var CATS=["全部"].concat(D.map(function(d){return d.cat}).filter(function(c,i,a){return a.indexOf(c)===i}));
 var DAYS=[0,1,2,4,7,15,30],DAY=86400000;
+function mine(d){var m=(S[d.id]||{}).mine;return m?'<div style="margin-top:8px;text-align:left;width:100%;white-space:pre-wrap">📝 '+esc(m)+'</div>':""}
 function note(d){return d.note?'<div class="sub" style="margin-top:8px">💡 '+esc(d.note)+'</div>':""}
 var S={};try{S=JSON.parse(localStorage.getItem("pyc")||"{}")}catch(e){}
 function save(){try{localStorage.setItem("pyc",JSON.stringify(S))}catch(e){}}
+var N=[],nedit=null;try{N=JSON.parse(localStorage.getItem("pyn")||"[]")}catch(e){}
+function saveN(){try{localStorage.setItem("pyn",JSON.stringify(N))}catch(e){}}
+function vNotes(){
+ var cur=N.filter(function(x){return x.id==nedit})[0];
+ if(cur)return'<h1>编辑笔记</h1><input type="text" id="nt" placeholder="标题，如：字符串常见报错"><textarea class="mynote" id="nc" style="min-height:300px" placeholder="想记什么都可以…"></textarea><div class="row"><button class="p" id="nback">完成</button><button class="bad" id="ndel">删除</button></div>';
+ var l=N.slice().sort(function(a,b){return b.ts-a.ts});
+ return'<h1>我的笔记</h1><button class="p" id="nnew" style="width:100%;margin-bottom:10px">＋ 新建笔记</button>'+(l.length?l.map(function(n){return'<div class="card" data-ne="'+n.id+'"><b>'+esc(n.t||"无标题")+'</b><div class="sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(n.c||"空白笔记")+'</div><div class="sub" style="font-size:12px">'+new Date(n.ts).toLocaleDateString("zh-CN")+'</div></div>'}).join(""):'<div class="card sub">还没有笔记。遇到的问题、报错、老师讲的重点，都可以记在这里。</div>');
+}
 function st(id){return S[id]||(S[id]={box:-1,due:0,fav:false,hard:false})}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function mark(id,known){var s=st(id);if(known){s.box=Math.min(s.box+1,6);s.hard=s.box<2&&s.hard;s.due=Date.now()+DAYS[s.box]*DAY}else{s.box=0;s.hard=true;s.due=Date.now()}save()}
 function isDue(id){var s=S[id];return !s||s.box<0||s.due<=Date.now()}
 var tab="browse",cat="全部",q="",open={},deck=[],di=0,flip=false,mode="due",qz=null;
-var TABS=[["browse","浏览"],["flash","闪卡"],["quiz","测验"],["stat","进度"]];
+var TABS=[["browse","浏览"],["flash","闪卡"],["quiz","测验"],["notes","笔记"],["stat","进度"]];
 function nav(){document.getElementById("nav").innerHTML=TABS.map(function(t){return'<button class="'+(tab==t[0]?"on":"")+'" data-t="'+t[0]+'">'+t[1]+'</button>'}).join("")}
-document.getElementById("nav").onclick=function(e){var t=e.target.dataset.t;if(t){tab=t;if(t=="flash")buildDeck();if(t=="quiz")qz=null;render()}};
+document.getElementById("nav").onclick=function(e){var t=e.target.dataset.t;if(t){tab=t;if(t=="flash")buildDeck();if(t=="quiz")qz=null;nedit=null;render()}};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function buildDeck(){var l=D.filter(function(d){var s=S[d.id]||{};return mode=="all"||(mode=="due"&&isDue(d.id))||(mode=="hard"&&s.hard)||(mode=="fav"&&s.fav)});deck=shuffle(l);di=0;flip=false}
-function render(){nav();var a=document.getElementById("app");a.innerHTML=({browse:vBrowse,flash:vFlash,quiz:vQuiz,stat:vStat})[tab]();window.scrollTo(0,0);bind()}
+function render(){nav();var a=document.getElementById("app");a.innerHTML=({browse:vBrowse,flash:vFlash,quiz:vQuiz,notes:vNotes,stat:vStat})[tab]();window.scrollTo(0,0);bind()}
 function vBrowse(){
- var l=D.filter(function(d){return(cat=="全部"||d.cat==cat)&&(!q||(d.name+d.desc).toLowerCase().indexOf(q.toLowerCase())>=0)});
+ var l=D.filter(function(d){return(cat=="全部"||d.cat==cat)&&(!q||(d.name+d.desc+((S[d.id]||{}).mine||"")).toLowerCase().indexOf(q.toLowerCase())>=0)});
  return'<h1>Python 函数</h1><input type="search" id="q" placeholder="搜索函数名或作用" value="'+esc(q)+'"><div class="chips">'+CATS.map(function(c){return'<span class="chip '+(c==cat?"on":"")+'" data-c="'+c+'">'+c+'</span>'}).join("")+'</div><div id="list">'+
- (l.length?l.map(function(d){var s=S[d.id]||{};return'<div class="card"><div data-o="'+d.id+'"><span class="name">'+esc(d.name)+'</span>'+(s.fav?" ⭐":"")+(s.hard?'<span class="tag">不熟</span>':"")+'<div class="sub">'+esc(d.desc)+'</div></div>'+(open[d.id]?'<pre>'+esc(d.syn)+'</pre><pre>'+esc(d.ex)+'</pre>'+note(d)+'<div class="row"><button class="mini" data-f="'+d.id+'">'+(s.fav?"取消收藏":"⭐ 收藏")+'</button><button class="mini" data-h="'+d.id+'">'+(s.hard?"标记已熟":"标记不熟")+'</button></div>':"")+'</div>'}).join(""):'<p class="sub">没有找到匹配的函数</p>')+'</div>';
+ (l.length?l.map(function(d){var s=S[d.id]||{};return'<div class="card"><div data-o="'+d.id+'"><span class="name">'+esc(d.name)+'</span>'+(s.fav?" ⭐":"")+(s.mine?" 📝":"")+(s.hard?'<span class="tag">不熟</span>':"")+'<div class="sub">'+esc(d.desc)+'</div></div>'+(open[d.id]?'<pre>'+esc(d.syn)+'</pre><pre>'+esc(d.ex)+'</pre>'+note(d)+'<textarea class="mynote" data-n="'+d.id+'" placeholder="我的笔记：遇到的问题、易错点…">'+esc(s.mine||"")+'</textarea><div class="row"><button class="mini" data-f="'+d.id+'">'+(s.fav?"取消收藏":"⭐ 收藏")+'</button><button class="mini" data-h="'+d.id+'">'+(s.hard?"标记已熟":"标记不熟")+'</button></div>':"")+'</div>'}).join(""):'<p class="sub">没有找到匹配的函数</p>')+'</div>';
 }
 function vFlash(){
  var sel='<select id="mode">'+[["due","今日待复习"],["hard","不熟的"],["fav","收藏的"],["all","全部"]].map(function(m){return'<option value="'+m[0]+'"'+(m[0]==mode?" selected":"")+'>'+m[1]+'</option>'}).join("")+'</select>';
  if(!deck.length)return'<h1>闪卡</h1>'+sel+'<div class="card sub">这个范围里没有卡片了 🎉 换个范围试试。</div>';
  if(di>=deck.length)return'<h1>闪卡</h1>'+sel+'<div class="card flash"><div class="big">完成 ✅</div><p class="sub">本轮 '+deck.length+' 张已全部过完</p><button class="p" id="again">再来一轮</button></div>';
  var d=deck[di];
- return'<h1>闪卡 '+(di+1)+'/'+deck.length+'</h1>'+sel+'<div class="card flash" id="fc">'+(flip?'<div class="name">'+esc(d.name)+'</div><div style="margin:8px 0">'+esc(d.desc)+'</div><pre style="text-align:left;width:100%">'+esc(d.syn)+'</pre><pre style="text-align:left;width:100%">'+esc(d.ex)+'</pre>'+note(d):'<div class="sub">这个函数的作用是？</div><div class="name" style="margin-top:8px">'+esc(d.name)+'</div><div class="sub" style="margin-top:16px">点击翻面（先回忆再看）</div>')+'</div>'+(flip?'<div class="row"><button class="bad" id="no">不熟</button><button class="ok" id="yes">记住了</button></div>':'');
+ return'<h1>闪卡 '+(di+1)+'/'+deck.length+'</h1>'+sel+'<div class="card flash" id="fc">'+(flip?'<div class="name">'+esc(d.name)+'</div><div style="margin:8px 0">'+esc(d.desc)+'</div><pre style="text-align:left;width:100%">'+esc(d.syn)+'</pre><pre style="text-align:left;width:100%">'+esc(d.ex)+'</pre>'+note(d)+mine(d):'<div class="sub">这个函数的作用是？</div><div class="name" style="margin-top:8px">'+esc(d.name)+'</div><div class="sub" style="margin-top:16px">点击翻面（先回忆再看）</div>')+'</div>'+(flip?'<div class="row"><button class="bad" id="no">不熟</button><button class="ok" id="yes">记住了</button></div>':'');
 }
 function newQuiz(){var pool=shuffle(D).slice(0,10);qz={i:0,score:0,ans:null,qs:pool.map(function(d){var o=shuffle(D.filter(function(x){return x.id!=d.id})).slice(0,3).concat([d]);return{d:d,o:shuffle(o)}})}}
 function vQuiz(){
@@ -224,7 +234,7 @@ function bind(){
  var $=function(i){return document.getElementById(i)};
  var qi=$("q");if(qi){var comp=false;var upd=function(){q=qi.value;var t=document.createElement("div");t.innerHTML=vBrowse();$("list").innerHTML=t.querySelector("#list").innerHTML;bindList()};qi.oninput=function(){if(!comp)upd()};qi.oncompositionstart=function(){comp=true};qi.oncompositionend=function(){comp=false;upd()}}
  document.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){cat=e.dataset.c;render()}});
- function bindList(){document.querySelectorAll("[data-o]").forEach(function(e){e.onclick=function(){open[e.dataset.o]=!open[e.dataset.o];var y=scrollY;render();scrollTo(0,y)}});
+ function bindList(){document.querySelectorAll("[data-n]").forEach(function(e){e.oninput=function(){var s=st(e.dataset.n);s.mine=e.value;save()}});document.querySelectorAll("[data-o]").forEach(function(e){e.onclick=function(){open[e.dataset.o]=!open[e.dataset.o];var y=scrollY;render();scrollTo(0,y)}});
  document.querySelectorAll("[data-f]").forEach(function(e){e.onclick=function(){var s=st(e.dataset.f);s.fav=!s.fav;save();var y=scrollY;render();scrollTo(0,y)}});
  document.querySelectorAll("[data-h]").forEach(function(e){e.onclick=function(){var s=st(e.dataset.h);s.hard=!s.hard;save();var y=scrollY;render();scrollTo(0,y)}});}bindList();
  var m=$("mode");if(m)m.onchange=function(){mode=m.value;buildDeck();render()};
@@ -235,7 +245,10 @@ function bind(){
  if($("start"))$("start").onclick=function(){newQuiz();render()};
  document.querySelectorAll("[data-a]").forEach(function(e){e.onclick=function(){if(qz.ans)return;var d=qz.qs[qz.i].d;qz.ans=e.dataset.a;if(qz.ans==d.id){qz.score++;mark(d.id,true)}else mark(d.id,false);render()}});
  if($("nx"))$("nx").onclick=function(){qz.i++;qz.ans=null;render()};
- if($("reset"))$("reset").onclick=function(){if(confirm("确定清空所有学习记录？")){S={};save();render()}};
+ if($("reset"))$("reset").onclick=function(){var b=$("reset");if(b.dataset.s){S={};save();render()}else{b.dataset.s="1";b.textContent="再点一次确认清空（笔记页不会删）";setTimeout(function(){b.dataset.s="";b.textContent="清空学习记录"},3000)}};
+ if($("nnew"))$("nnew").onclick=function(){var n={id:"n"+Date.now(),t:"",c:"",ts:Date.now()};N.unshift(n);saveN();nedit=n.id;render()};
+ document.querySelectorAll("[data-ne]").forEach(function(e){e.onclick=function(){nedit=e.dataset.ne;render()}});
+ if($("nt")){var cur=N.filter(function(x){return x.id==nedit})[0];$("nt").value=cur.t;$("nc").value=cur.c;var sv=function(){cur.t=$("nt").value;cur.c=$("nc").value;cur.ts=Date.now();saveN()};$("nt").oninput=sv;$("nc").oninput=sv;$("nback").onclick=function(){if(!cur.t&&!cur.c)N=N.filter(function(x){return x!=cur});nedit=null;saveN();render()};$("ndel").onclick=function(){var b=$("ndel");if(b.dataset.s){N=N.filter(function(x){return x!=cur});nedit=null;saveN();render()}else{b.dataset.s="1";b.textContent="再点一次确认删除";setTimeout(function(){b.dataset.s="";b.textContent="删除"},3000)}}}
 }
 render();
 </script>
