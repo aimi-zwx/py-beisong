@@ -1,0 +1,62 @@
+:root{--bg:#f2f4f7;--surface:#fff;--ink:#17202b;--muted:#5d6b7b;--line:#dde2e9;--accent:#2b4fd8;--accent-soft:#e6ebfc;--chip:#eef1f5;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.06);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--surface:#1a2029;--ink:#e8edf3;--muted:#98a5b5;--line:#2a3340;--accent:#8ea6ff;--accent-soft:#222c4a;--chip:#232b36;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161c;--surface:#1a2029;--ink:#e8edf3;--muted:#98a5b5;--line:#2a3340;--accent:#8ea6ff;--accent-soft:#222c4a;--chip:#232b36;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 50px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:16px;border-bottom:2px solid var(--ink);margin-bottom:16px}
+h1{margin:0;font:700 clamp(26px,5vw,38px)/1.2 "Songti SC","Noto Serif SC","Source Han Serif SC",serif;letter-spacing:.02em}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.search{flex:1 1 220px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.chip i{font-style:normal;opacity:.6;margin-left:4px;font-size:12px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.layout{display:grid;grid-template-columns:150px 1fr;gap:28px}
+.rail{position:sticky;top:12px;align-self:start;display:flex;flex-direction:column;gap:2px;border-left:2px solid var(--line);max-height:90vh;overflow-y:auto}
+.day{display:block;text-align:left;border:0;background:none;cursor:pointer;padding:8px 12px;margin-left:-2px;border-left:2px solid transparent;color:var(--muted)}
+.day b{display:block;font:700 22px/1.2 "Songti SC","Noto Serif SC",serif;color:var(--ink)}
+.day small{font-size:12px}
+.day[aria-current="true"]{border-left-color:var(--accent);background:var(--surface)}
+.day[aria-current="true"] b{color:var(--accent)}
+h2{margin:0 0 4px;font:700 22px/1.3 "Songti SC","Noto Serif SC",serif}
+.count{color:var(--muted);font-size:14px;margin:0 0 14px}
+.digest{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:15px}
+.digest b{display:block;margin-bottom:4px}
+.hotw{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px;font-size:14px;color:var(--muted)}
+.hw{border:1px dashed var(--line);background:none;border-radius:6px;padding:2px 10px;cursor:pointer;font-size:14px}
+.hw:hover{border-color:var(--accent);color:var(--accent)}
+.cover{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:var(--chip)}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
+.hero .body{padding:22px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.hero h3{margin:0;font:700 clamp(20px,3vw,26px)/1.4 "Songti SC","Noto Serif SC",serif}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{margin:0;font:700 17px/1.45 "Songti SC","Noto Serif SC",serif}
+a.t{color:inherit;text-decoration:none}a.t:hover{color:var(--accent)}a.t.read{color:var(--muted)}
+.sum{margin:0;color:var(--muted);font-size:14.5px}
+.meta{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:auto;padding-top:6px;flex-wrap:wrap}
+.tag{background:var(--chip);border-radius:4px;padding:1px 8px}
+.tag.ai{background:var(--accent-soft);color:var(--accent);font-size:12px;white-space:nowrap}
+.go{margin-left:auto;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:1px 10px;font-size:13px;text-decoration:none;white-space:nowrap}
+.go:hover{background:var(--accent);color:var(--bg)}
+.save{border:0;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:2px 4px}
+.save[aria-pressed="true"]{color:#e0a100}
+.gh{margin:0 0 22px}.gh h3{margin:0 0 10px;font:700 17px/1.4 "Songti SC","Noto Serif SC",serif}
+.ghg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.ghc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ghc a{font-weight:700;font-size:15px;color:var(--accent);text-decoration:none;word-break:break-all}.ghc a:hover{text-decoration:underline}
+.ghc p{margin:0;font-size:14px;color:var(--muted)}
+.empty{padding:40px 0;color:var(--muted)}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:760px){
+  .layout{grid-template-columns:1fr;gap:14px}.hero{grid-template-columns:1fr}
+  .rail{position:static;flex-direction:row;overflow-x:auto;border-left:0;border-bottom:2px solid var(--line);max-height:none}
+  .day{border-left:0;border-bottom:2px solid transparent;margin:0 0 -2px;white-space:nowrap;padding:6px 12px}
+  .day[aria-current="true"]{border-bottom-color:var(--accent)}.day b{font-size:18px}
+}
